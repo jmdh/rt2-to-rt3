@@ -280,6 +280,11 @@ if ( $mode =~ /^(?:all|first)$/i ) {
         if ( $ace->PrincipalType eq 'Group' && $ace->PrincipalObj->Pseudo ) {
             $right_ds->{'Role'} = $ace->PrincipalObj->Name;
             delete $right_ds->{'PrincipalId'};
+        } else {
+            unless ( defined $ace->PrincipalObj->Id ) {
+                print "ACE " . $ace->Id . " refers to non-existant user; not exporting\n"; 
+                next;
+            }
         }
 
         push ( @{ $ds->{'Global'}->{'Right'} }, $right_ds );
