@@ -960,6 +960,17 @@ sub import_tickets {
                             $a->{Parent} = $attachment_parent;
                         }
                     }
+
+                    if ( ExportType() eq 'incremental' ) {
+                        # Deal with merged older tickets
+                        # not in this dump
+                        my $oldatt = RT::Attachment->new($RT::SystemUser);
+                        $oldatt->Load($a->{id});
+                        if ( $oldatt->Id ) {
+                            $oldatt->Delete();
+                        }
+                    }
+                        
                     my ( $attid, $attmsg ) = $att->Import( %{$a} );
 
                     unless ( $att->Id ) {
