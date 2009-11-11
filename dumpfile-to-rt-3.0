@@ -12,7 +12,17 @@ $| = 1;
 
 use Data::Dumper;
 use MIME::Base64;
-BEGIN { $RT::DontCacheSearchBuilderRecords = 1; }
+
+use lib ("/opt/rt3/lib");
+
+BEGIN {
+    no warnings qw/once/;
+    $RT::DontCacheSearchBuilderRecords = 1;
+    require RT;
+    RT::LoadConfig();
+    my $config = RT->Config;
+    $config->Set(DontCacheSearchBuilderRecords => 1);
+}
 use vars qw($dbh $debug %user_objects);
 $debug = 0;
 
@@ -34,7 +44,6 @@ my $import_queues          = 1;
 my $import_tickets         = 1;
 my $import_links           = 1;
 my $merge_on_import        = 0;
-use lib ("/opt/rt3/lib");
 
 use Getopt::Long;
 
@@ -52,6 +61,13 @@ CleanEnv();
 # Load the config file
 RT::LoadConfig();
 
+{
+    no warnings 'once';
+    $RT::LogStackTraces = 1;
+}
+my $config = RT->Config;
+$config->Set(LogStackTraces => 1);
+
 #Connect to the database and get RT::SystemUser and RT::Nobody loaded
 RT::Init();
 
@@ -60,8 +76,6 @@ my $DIR = shift @ARGV
 
 require $DIR . "/metadata";
 my $VAR1 = Data();
-
-$RT::LogStackTraces = 1;
 
 # optional second command line argument
 # tells us where to find mappings
