@@ -934,7 +934,7 @@ sub import_tickets {
                                 if ($@) { print $@ }
 
                             }
-                        } elsif ($a->{'ContentEncoding'} eq 'base64') {
+                        } elsif (defined $a->{'ContentEncoding'} && $a->{'ContentEncoding'} eq 'base64') {
                             # rt2 decodes base64-encoded attachments
                             # upon export.
                             $a->{'Content'}
@@ -989,7 +989,8 @@ sub import_tickets {
                     # but since Attachment->OriginalContent and Attachment->Content
                     # will decode things with ContentEncoding eq 'base64' we'll
                     # set that properly instead.
-                    if ($a->{ContentEncoding} eq 'base64' 
+                    if (defined $a->{ContentEncoding}
+                        && $a->{ContentEncoding} eq 'base64' 
                         && $a->{ContentEncoding} ne $att->ContentEncoding) {
                         $att->__Set(Field => 'ContentEncoding',
                                     Value => $a->{ContentEncoding});
