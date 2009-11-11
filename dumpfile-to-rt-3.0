@@ -664,7 +664,7 @@ sub import_tickets {
                               . "'" );
                     }
                     $RT::Handle->SimpleQuery(
-                        "DELETE FROM TicketCustomFieldValues WHERE Ticket = '$id'");
+                        "DELETE FROM ObjectCustomFieldValues WHERE ObjectID = '$id' AND ObjectType = 'RT::Ticket'");
                     $RT::Handle->SimpleQuery(
                         "DELETE FROM Tickets WHERE id = '$id'");
                 }
