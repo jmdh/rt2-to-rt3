@@ -55,7 +55,9 @@ If your RT instance contains tickets encoded in a characterset other than
 Execute:
 dumpfile-to-rt-3.0 DIRNAME
 
-Watch it spin.  If it crashes, please send a crashdump to rt-devel@lists.fsck.com
+Watch it spin.  If it crashes, please send a crashdump to
+rt-devel@lists.bestpractical.com
+
 Importing is a heavy-weight process and for large databases can run for a very
 long time. (Huge imports can take over 24 hours to run.) The import toolset now
 ships with an "incremental" mode. The incremental mode will take care of any
