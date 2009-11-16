@@ -114,3 +114,23 @@ assign all tickets a new CustomField.
 You can find some example code using these hooks in the examples directory
 
 Bug reports and problems should be sent to rt-devel@lists.bestpractical.com
+
+KNOWN ISSUES WITH RT 3.8
+
+The following error/warnings messages may occur when running this
+code against RT3.8 (and possibly earlier versions):
+
+dumpfile-to-rt3.0:
+
+During scrip import:
+[warning]: Use of uninitialized value $_[1] in join or string at (eval 6809) line 2. ((eval 6809):2)
+
+This message relates to localisation of message strings and can be
+ignored.
+
+During ticket import:
+[warning]: Use of uninitialized value $MIMEType in pattern match (m//) at /usr/share/request-tracker3.8/lib/RT/Record.pm line 736. (/usr/share/request-tracker3.8/lib/RT/Record.pm:736)
+[warning]: Use of uninitialized value $Body in pattern match (m//) at /usr/share/request-tracker3.8/lib/RT/Record.pm line 736. (/usr/share/request-tracker3.8/lib/RT/Record.pm:736)
+[warning]: Use of uninitialized value in subroutine entry at /usr/share/request-tracker3.8/lib/RT/Record.pm line 783. (/usr/share/request-tracker3.8/lib/RT/Record.pm:783)
+
+Not yet fully diagnosed but appears harmless.
