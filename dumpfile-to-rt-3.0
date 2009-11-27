@@ -317,7 +317,6 @@ else {
             $queue_map->{ $temp{'id'} } = $id;
 
             foreach my $watcher ( @{ $temp{Watchers} } ) {
-                $watcher->{'PrincipalId'} = $user_map->{ $watcher->{'id'} };
                 delete $watcher->{'id'};
                 $queue_obj->AddWatcher(%$watcher);
             }
