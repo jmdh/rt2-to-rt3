@@ -523,6 +523,7 @@ sub import_scrip {
 
     my $so = RT::Scrip->new($RT::SystemUser);
 
+    $scrip->{'Action'}    =~ s/WithAttach//;
     $scrip->{'Template'}  =~ s/(.)([A-Z])/$1 $2/g;
     $scrip->{'Condition'} =~ s/(.)([A-Z])/$1 $2/g;
     $scrip->{'Action'}    =~ s/(.)([A-Z])/$1 $2/g;
