@@ -17,10 +17,9 @@ This tool migrates your RT2 instance to an RT 3.x instance. It transfers:
 
 It does NOT automatically migrate:
 
-	Custom templates, 
-	Custom Scrips, 
-	Custom ScripActions, 
-	Custom ScripConditions
+	Custom templates (but see CUSTOM TEMPLATES below), 
+	Custom ScripActions, or Scrips containing them 
+	Custom ScripConditions, or Scrips containing them
 
 
 
@@ -114,6 +113,42 @@ These can be used to create new groups, assign all users to a group,
 assign all tickets a new CustomField.
 
 You can find some example code using these hooks in the examples directory
+
+CUSTOM TEMPLATES
+
+Custom templates are not automatically imported, because they may
+contain Perl code which is not compatible with the new API. However, once
+they have been manually reviewed, you can feed them into the import script
+separately.
+
+To do this, prepare a directory tree containing one subdirectory per queue,
+and inside each subdirectory, place files named after the template
+containing the template text.
+
+If you have global custom templates, you can prepare these in the same
+way by creating a subdirectory name that doesn't clash with any queues.
+
+Then, when you invoke dumpfile-to-rt-3.0, ensure that the directory you 
+prepared above is readable by the migration user, and supply the
+following additional options:
+
+--custom-templates
+
+The path to the top-level directory prepared above.
+
+--custom-templates-global-name
+
+The name of the subdirectory containing global templates.
+If this is omitted, no global templates will be imported.
+
+The custom template import is only run as part of the initial import,
+and these options will cause an incremental import to abort.
+
+tools/rt2_dumptemplates.pl from this distribution may be of use in
+extracting the initial templates, although you will need to rearrange
+the files into the correct structure for import.
+
+REPORTING BUGS
 
 Bug reports and problems should be sent to rt-devel@lists.bestpractical.com
 

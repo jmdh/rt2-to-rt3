@@ -12,6 +12,7 @@ $| = 1;
 
 use Data::Dumper;
 use MIME::Base64;
+use File::Spec;
 
 use lib ("/opt/rt3/lib");
 
@@ -46,6 +47,23 @@ my $import_links           = 1;
 my $merge_on_import        = 0;
 
 use Getopt::Long;
+my $custom_templates;
+my $custom_templates_global_name;
+GetOptions( "custom-templates=s" => \$custom_templates,
+            "custom-templates-global-name=s" => \$custom_templates_global_name );
+if ( $custom_templates ) {
+    die "Custom templates directory '$custom_templates' does not exist\n"
+        unless -d $custom_templates;
+    if ( $custom_templates_global_name ) {
+        my $global_dir = File::Spec->catdir( $custom_templates, $custom_templates_global_name );
+        die "Custom templates global directory '$global_dir' does not exist\n"
+            unless -d $global_dir;
+    }
+} else {
+    if ( $custom_templates_global_name ) {
+        die "Custom templates global name specified without --custom-templates\n";
+    }
+}
 
 use RT::Interface::CLI qw(CleanEnv GetCurrentUser GetMessageContent loc);
 use RT::Tickets;
@@ -98,6 +116,8 @@ my $ticket_merge_map;
 my @errors;
 
 if ( ExportType() eq 'incremental' ) {
+    die "Cannot import custom templates in incremental mode\n"
+        if $custom_templates;
     my $users = $VAR1->{'User'};
     foreach my $user ( @{$users} ) {
         encode_hashref($user);
@@ -142,6 +162,7 @@ else {
     check_import();
     print "Importing scrips\n";
     client_setup();
+    import_custom_templates( 0 );
     foreach my $scrip ( @{ $VAR1->{'Global'}->{'Scrip'} } ) {
 	print "s";
         import_scrip( $scrip, 0 );
@@ -416,6 +437,7 @@ else {
                     $cfobj->AddValue( Name => $val );
                 }
             }
+            import_custom_templates( $queue_obj->Id );
             foreach my $scrip ( @{ $temp{'Scrip'} } ) {
                 import_scrip( $scrip, $queue_obj->Id );
             }
@@ -1083,5 +1105,52 @@ sub check_import {
         die "You already have tickets in this RT install\n" .
             "If this is not a clean RT install, set \$merge_on_import " .
             "to enable merging of tickets.";
+    }
+}
+
+sub import_custom_templates {
+    my $queue = ( shift || '0' );
+    return unless $custom_templates;
+    my $queue_obj = RT::Queue->new($RT::SystemUser);
+    my $queue_name;
+    if ( $queue ) {
+        $queue_obj->LoadByCols( Id => $queue );
+        $queue_name = $queue_obj->Name
+            or die "Could not load queue name for custom templates\n";
+    } else {
+        $queue_name = $custom_templates_global_name
+            or return;
+    }
+    my $queue_dir = File::Spec->catdir( $custom_templates, $queue_name );
+    if ( -d $queue_dir ) {
+        opendir TDIR, $queue_dir
+            or die "Error opening $queue_dir: $!\n";
+        while ( my $dire = readdir TDIR ) {
+            my $tmpl_file = File::Spec->catdir( $queue_dir, $dire );
+            next unless -f $tmpl_file;
+            my $template_text;
+            {
+                local $/ = undef;
+                open TMPL, $tmpl_file
+                    or die "Error opening $tmpl_file: $!\n";
+                $template_text = <TMPL>;
+                close TMPL;
+            }
+            my $tmpl_obj = RT::Template->new($RT::SystemUser);
+            my $tmpl_name = $dire;
+            # Template name transformation matches that of
+            # import_scrip
+            $tmpl_name =~ s/(.)([A-Z])/$1 $2/g;
+            $tmpl_obj->Create(
+                Queue => $queue,
+                Name => $tmpl_name,
+                Description => "Imported custom template",
+                Content => $template_text
+            );
+            unless ( $tmpl_obj->Id ) {
+                warn "Could not import custom template '$dire' for queue '" . $queue_name . "'\n";
+            }
+        }
+        closedir TDIR;
     }
 }
