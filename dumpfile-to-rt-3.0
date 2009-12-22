@@ -552,6 +552,7 @@ sub import_scrip {
     $scrip->{'Action'}    =~ s/Admin Watchers/AdminCcs/;
     $scrip->{'Action'}    =~ s/Admin Ccs/AdminCcs/;
     $scrip->{'Action'}    =~ s/Requestor$/Requestors/;
+    $scrip->{'Action'}    =~ s/Notify All Watchers/Notify Owner, Requestors, Ccs and AdminCcs/;
 
     my %params = (
         Template       => $scrip->{'Template'},
@@ -560,30 +561,6 @@ sub import_scrip {
         Queue          => $queue,
         Description    => "Imported from RT 2.0"
     );
-
-    #Notify All watchers is now two seperate scrips
-    if ( $params{'ScripAction'} =~ /^Notify All Watchers(.*)$/ ) {
-        $params{'ScripAction'} = 'Notify Owner' . $1;
-        my $ownerscrip = RT::Scrip->new($RT::SystemUser);
-
-        $ownerscrip->Create(%params);
-
-        unless ( $ownerscrip->Id ) {
-            use Data::Dumper;
-            push @errors,
-              "\nCould not create scrip: "
-              . $params{'ScripCondition'} . " "
-              . $params{'ScripAction'}
-              . " with template "
-              . $params{'Template'}
-              . " in queue"
-              . $params{'Queue'} . " -- "
-              . Dumper( \%params )
-              . "\n - may be due to a non-standard template, condition or action";
-        }
-        $params{'ScripAction'} = 'Notify Requestors, Ccs and AdminCcs' . $1;
-
-    }
 
     $so->Create(%params);
 
